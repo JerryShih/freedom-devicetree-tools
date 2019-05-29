@@ -111,6 +111,17 @@ int main (int argc, char* argv[])
           m.base = b;
           m.size = s;
         });
+    } else if (n.field_exists("ranges")) {
+      n.maybe_tuple(
+        "ranges",
+        tuple_t<target_addr, target_addr, target_size>(),
+        [&]() {},
+        [&](target_addr src, target_addr dest, target_size len) {
+          if (src != 0 && len != 0) {
+            m.base = src;
+            m.size = len;
+          }
+        });
     } else {
       n.maybe_tuple(
         "reg",
@@ -130,6 +141,18 @@ int main (int argc, char* argv[])
     "sifive,sram0",
     "sifive,testram0",
     "memory",
+    "sifive,axi4-periph-port",
+    "sifive,ahb-periph-port",
+    "sifive,tl-periph-port",
+    "sifive,axi4-sys-port",
+    "sifive,ahb-sys-port",
+    "sifive,tl-sys-port",
+    "sifive,axi4-mem-port",
+    "sifive,ahb-mem-port",
+    "sifive,tl-mem-port",
+    "sifive,periph-port",
+    "sifive,sys-port",
+    "sifive,mem-port",
   };
   list<Memory> memories;
 

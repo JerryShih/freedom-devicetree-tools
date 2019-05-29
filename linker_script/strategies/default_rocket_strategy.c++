@@ -9,28 +9,29 @@
 
 bool DefaultRocketStrategy::valid(const fdt &dtb, list<Memory> available_memories)
 {
-  bool has_testram = false;
+  bool testram = has_testram(available_memories);
   bool has_dtim = false;
   /* ITIM is optional */
 
   for (auto it = available_memories.begin(); it != available_memories.end(); it++) {
     if ((*it).compatible.compare("sifive,dtim0") == 0) {
       has_dtim = true;
-    } else if ((*it).compatible.compare("sifive,testram0") == 0) {
-      has_testram = true;
     }
   }
 
-  return (has_testram && has_dtim);
+  return (testram && has_dtim);
 }
 
 LinkerScript DefaultRocketStrategy::create_layout(const fdt &dtb, list<Memory> available_memories,
                                                   LinkStrategy link_strategy)
 {
-  Memory rom_memory;
   Memory ram_memory;
   Memory itim_memory;
   bool has_itim = false;
+
+  Memory rom_memory = find_testram(available_memories);
+  rom_memory.name = "flash";
+  rom_memory.attributes = "rxai!w";
 
   for (auto it = available_memories.begin(); it != available_memories.end(); it++) {
     if ((*it).compatible == "sifive,dtim0") {
@@ -42,10 +43,6 @@ LinkerScript DefaultRocketStrategy::create_layout(const fdt &dtb, list<Memory> a
       itim_memory = *it;
       itim_memory.name = "itim";
       itim_memory.attributes = "wx!rai";
-    } else if ((*it).compatible == "sifive,testram0") {
-      rom_memory = *it;
-      rom_memory.name = "flash";
-      rom_memory.attributes = "rxai!w";
     }
   }
 

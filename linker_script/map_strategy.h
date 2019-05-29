@@ -25,6 +25,10 @@ class MapStrategy {
   public:
     void print_chosen_strategy(string name, LinkStrategy layout, Memory ram, Memory rom, Memory itim);
 
+    /* Generic helpers for identifying testrams */
+    bool has_testram(list<Memory> memories);
+    Memory find_testram(list<Memory> memories);
+
     virtual bool valid(const fdt &dtb, list<Memory> available_memories) = 0;
 
     virtual LinkerScript create_layout(const fdt &dtb, list<Memory> available_memories,
