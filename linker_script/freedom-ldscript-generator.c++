@@ -206,13 +206,13 @@ int main (int argc, char* argv[])
   strategies.push_back(new DefaultE21ArtyStrategy());
   strategies.push_back(new DefaultE21Strategy());
 
+  /* Bullet and other targets prioritize the memory node */
+  strategies.push_back(new DefaultBulletArtyStrategy());
+  strategies.push_back(new DefaultBulletStrategy());
+
   /* Rocket is pretty straightforward */
   strategies.push_back(new DefaultRocketArtyStrategy());
   strategies.push_back(new DefaultRocketStrategy());
-
-  /* Bullet only uses memory node */
-  strategies.push_back(new DefaultBulletArtyStrategy());
-  strategies.push_back(new DefaultBulletStrategy());
 
   /* E20 strategy goes last because it only uses one sram */
   strategies.push_back(new DefaultE20ArtyStrategy());
