@@ -208,7 +208,7 @@ static void memory_port_width ()
     dtb.match(
         std::regex("memory"), [&](node n) {
             auto name = n.name();
-            port_width = 8 * n.get_field<uint32_t>("sifive,port-width-bytes");
+            port_width = 32;
             n.maybe_tuple(
                 "reg", tuple_t<target_addr, target_size>(),
                 [&]() {},
@@ -345,9 +345,14 @@ static void show_dts_attributes (void)
 
 static void write_coreip_memory_width (fstream &os)
 {
-    uint32_t port_width = 32;
+    uint32_t port_width = 0;
+
+    /* Periph memory has first preference */
     for (auto entry : dts_memory_list) {
+      std::cout << entry.mem_alias << " " << entry.mem_name << " "
+                << std::to_string(entry.mem_port_width) << " " << __FUNCTION__ << std::endl;
       if (entry.mem_alias.compare("periph_ram") == 0) {
+        /* AHB Periph memory has first preferences, then the following orders */
         if (entry.mem_name.compare("sifive,ahb-periph-port") == 0) {
             port_width = entry.mem_port_width;
             break;
@@ -364,27 +369,35 @@ static void write_coreip_memory_width (fstream &os)
             port_width = entry.mem_port_width;
             break;
         }
-      } else if (entry.mem_alias.compare("sys_ram") == 0) {
-        if (entry.mem_name.compare("sifive,ahb-sys-port") == 0) {
-            port_width = entry.mem_port_width;
-            break;
-        }
-        if (entry.mem_name.compare("sifive,apb-sys-port") == 0) {
-            port_width = entry.mem_port_width;
-            break;
-        }
-        if (entry.mem_name.compare("sifive,axi4-sys-port") == 0) {
-            port_width = entry.mem_port_width;
-            break;
-        }
-        if (entry.mem_name.compare("sifive,tl-sys-port") == 0) {
-            port_width = entry.mem_port_width;
-            break;
-        }
-      } else if (entry.mem_alias.compare("memory") == 0) {
-            port_width = entry.mem_port_width;
-            break;
       }
+    }
+    if (port_width == 0) {
+      /* Follows by Sys memory, second preference */
+      for (auto entry : dts_memory_list) {
+        if (entry.mem_alias.compare("sys_ram") == 0) {
+          /* AHB Sys memory has first preferences, then the following orders */
+          if (entry.mem_name.compare("sifive,ahb-sys-port") == 0) {
+              port_width = entry.mem_port_width;
+              break;
+          }
+          if (entry.mem_name.compare("sifive,apb-sys-port") == 0) {
+              port_width = entry.mem_port_width;
+              break;
+          }
+          if (entry.mem_name.compare("sifive,axi4-sys-port") == 0) {
+              port_width = entry.mem_port_width;
+              break;
+          }
+          if (entry.mem_name.compare("sifive,tl-sys-port") == 0) {
+              port_width = entry.mem_port_width;
+              break;
+          }
+        }
+      }
+    }
+    /* Memory is the last and default choice */
+    if (port_width == 0) {
+      port_width = 32;
     }
     os << "COREIP_MEM_WIDTH=" << std::to_string(port_width) << std::endl;
 }
