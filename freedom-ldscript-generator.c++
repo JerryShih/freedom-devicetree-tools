@@ -204,9 +204,20 @@ static void dts_memory (void)
     int apb_sys_count = 0;
     int axi4_sys_count = 0;
     int tl_sys_count = 0;
+    int cpu_count = 0;
+    int dcache_size = 0;
 
     auto dtb = fdt((const uint8_t *)dts_blob);
     dtb.match(
+        std::regex("cpu"), [&](node n) {
+            auto name = n.name();
+            /* Get dcache-size, 0 if not present */
+            n.maybe_tuple(
+                "d-cache-size", tuple_t<uint32_t>(),
+                [&]() { dcache_size = 0; },
+                [&](uint32_t num) { dcache_size = num; });
+            cpu_count++;
+        },
         std::regex("memory"), [&](node n) {
             auto name = n.name();
             n.maybe_tuple(
@@ -367,95 +378,119 @@ static void dts_memory (void)
         });
 
     if (ahb_periph_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("ahb_periph_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
+            alias_memory("ahb_periph_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
             alias_memory("ahb_periph_ram", "flash");
         } else {
             alias_memory("ahb_periph_ram", "ram");
         }
     } else if (apb_periph_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("apb_periph_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
+            alias_memory("apb_periph_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
             alias_memory("apb_periph_ram", "flash");
         } else {
             alias_memory("apb_periph_ram", "ram");
         }
     } else if (axi4_periph_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("axi4_periph_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
+            alias_memory("axi4_periph_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
             alias_memory("axi4_periph_ram", "flash");
         } else {
             alias_memory("axi4_periph_ram", "ram");
         }
     } else if (tl_periph_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("tl_periph_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
+            alias_memory("tl_periph_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
             alias_memory("tl_periph_ram", "flash");
         } else {
             alias_memory("tl_periph_ram", "ram");
         }
     } else if (ahb_sys_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("ahb_sys_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
+            alias_memory("ahb_sys_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
             alias_memory("ahb_sys_ram", "flash");
         } else {
             alias_memory("ahb_sys_ram", "ram");
         }
     } else if (apb_sys_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("apb_sys_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
+            alias_memory("apb_sys_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
             alias_memory("apb_sys_ram", "flash");
         } else {
             alias_memory("apb_sys_ram", "ram");
         }
     } else if (axi4_sys_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("axi4_sys_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
+            alias_memory("axi4_sys_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
             alias_memory("axi4_sys_ram", "flash");
         } else {
             alias_memory("axi4_sys_ram", "ram");
         }
     } else if (tl_sys_count > 0) {
-        if (sram_count > 0) {
+        if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
             alias_memory("tl_sys_ram", "flash");
         } else if (dtim_count > 0) {
             alias_memory("dtim", "ram");
             alias_memory("tl_sys_ram", "flash");
+        } else if (dcache_size > 0) {
+            alias_memory("memory", "ram");
+            alias_memory("tl_sys_ram", "flash");
         } else {
             alias_memory("tl_sys_ram", "ram");
         }
     } else if (testram_count > 0) {
-    	if (sram_count > 0) {
+    	if (sram_count > 1) {
             alias_memory("sram0", "ram");
             alias_memory("sram1", "itim");
 	    alias_memory("testram", "flash");
